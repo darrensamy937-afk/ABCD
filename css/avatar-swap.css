@@ -1,0 +1,438 @@
+/* ========== 头像交换弹窗 ========== */
+
+/* 遮罩层 */
+.avatar-swap-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10001;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.avatar-swap-overlay.show {
+    opacity: 1;
+}
+
+/* 弹窗主体 */
+.avatar-swap-dialog {
+    width: 92%;
+    max-width: 380px;
+    max-height: 80vh;
+    background: var(--secondary-bg, #fff);
+    border-radius: 18px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: scale(0.92) translateY(20px);
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.avatar-swap-overlay.show .avatar-swap-dialog {
+    transform: scale(1) translateY(0);
+}
+
+/* 弹窗头部 */
+.avatar-swap-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px 12px;
+    border-bottom: 1px solid var(--border-color, #eee);
+    flex-shrink: 0;
+}
+
+.avatar-swap-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary, #333);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.avatar-swap-title i {
+    color: var(--accent-color, #e91e63);
+}
+
+.avatar-swap-close {
+    border: none;
+    background: rgba(var(--accent-color-rgb, 233, 30, 99), 0.1);
+    color: var(--text-secondary, #999);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s;
+}
+
+.avatar-swap-close:hover {
+    background: rgba(var(--accent-color-rgb, 233, 30, 99), 0.2);
+    color: var(--accent-color, #e91e63);
+}
+
+/* Tab 切换 */
+.avatar-swap-tabs {
+    display: flex;
+    padding: 0 18px;
+    gap: 6px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border-color, #eee);
+}
+
+.avatar-swap-tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px 0;
+    font-size: 14px;
+    color: var(--text-secondary, #999);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.avatar-swap-tab.active {
+    color: var(--accent-color, #e91e63);
+    border-bottom-color: var(--accent-color, #e91e63);
+    font-weight: 600;
+}
+
+/* 头像网格区域 */
+.avatar-swap-body {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 14px 18px;
+}
+
+.avatar-swap-body::-webkit-scrollbar {
+    width: 0;
+}
+
+/* 头像网格 */
+.avatar-swap-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+/* 头像格子 */
+.avatar-swap-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+    background: var(--primary-bg, #f5f5f5);
+}
+
+.avatar-swap-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-swap-item:hover {
+    border-color: var(--accent-color, #e91e63);
+    transform: scale(1.06);
+}
+
+.avatar-swap-item.selected {
+    border-color: var(--accent-color, #e91e63);
+    box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb, 233, 30, 99), 0.2);
+}
+
+/* 上传按钮格子 */
+.avatar-swap-upload {
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 2px dashed var(--border-color, #ddd);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-secondary, #999);
+    background: var(--primary-bg, #f9f9f9);
+}
+
+.avatar-swap-upload:hover {
+    border-color: var(--accent-color, #e91e63);
+    color: var(--accent-color, #e91e63);
+}
+
+.avatar-swap-upload i {
+    font-size: 20px;
+}
+
+/* 删除按钮 */
+.avatar-swap-delete {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    border: none;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 11px;
+    z-index: 5;
+}
+
+.avatar-swap-item:hover .avatar-swap-delete {
+    display: flex;
+}
+
+/* 锁定标记（被拒绝3次的头像） */
+.avatar-swap-locked {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 11px;
+    pointer-events: none;
+    z-index: 3;
+}
+
+.avatar-swap-locked i {
+    font-size: 18px;
+    margin-bottom: 2px;
+}
+
+.avatar-swap-locked-text {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 9px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 1px 0;
+}
+
+/* 拒绝次数指示器 */
+.avatar-swap-reject-count {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    background: rgba(233, 30, 99, 0.85);
+    color: #fff;
+    font-size: 10px;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    z-index: 4;
+}
+
+/* 空状态 */
+.avatar-swap-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary, #999);
+}
+
+.avatar-swap-empty i {
+    font-size: 36px;
+    margin-bottom: 10px;
+    opacity: 0.4;
+}
+
+.avatar-swap-empty p {
+    font-size: 13px;
+    margin: 4px 0;
+}
+
+/* 底部操作区 */
+.avatar-swap-footer {
+    padding: 12px 18px 16px;
+    border-top: 1px solid var(--border-color, #eee);
+    flex-shrink: 0;
+    display: flex;
+    gap: 10px;
+}
+
+.avatar-swap-btn {
+    flex: 1;
+    border: none;
+    border-radius: 12px;
+    padding: 11px 0;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: var(--font-family, inherit);
+}
+
+.avatar-swap-btn-primary {
+    background: var(--accent-color, #e91e63);
+    color: #fff;
+}
+
+.avatar-swap-btn-primary:hover {
+    opacity: 0.88;
+}
+
+.avatar-swap-btn-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.avatar-swap-btn-secondary {
+    background: var(--primary-bg, #f0f0f0);
+    color: var(--text-primary, #333);
+}
+
+.avatar-swap-btn-secondary:hover {
+    background: rgba(var(--accent-color-rgb, 233, 30, 99), 0.08);
+}
+
+/* === 邀请消息卡片（聊天中显示） === */
+.avatar-invite-card {
+    max-width: 260px;
+    padding: 14px;
+    border-radius: 16px;
+    background: var(--primary-bg, #f8f8f8);
+    border: 1px solid var(--border-color, #eee);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.avatar-invite-card .invite-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.avatar-invite-card .invite-header i {
+    color: var(--accent-color, #e91e63);
+    font-size: 16px;
+}
+
+.avatar-invite-card .invite-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary, #333);
+}
+
+.avatar-invite-card .invite-avatars {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin: 14px 0;
+}
+
+.avatar-invite-card .invite-avatar-box {
+    text-align: center;
+}
+
+.avatar-invite-card .invite-avatar-img {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--border-color, #ddd);
+}
+
+.avatar-invite-card .invite-avatar-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-invite-card .invite-avatar-label {
+    font-size: 11px;
+    color: var(--text-secondary, #999);
+    margin-top: 4px;
+}
+
+.avatar-invite-card .invite-arrow {
+    color: var(--text-secondary, #ccc);
+    font-size: 18px;
+}
+
+.avatar-invite-card .invite-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.avatar-invite-card .invite-actions button {
+    flex: 1;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 0;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: var(--font-family, inherit);
+}
+
+.avatar-invite-card .btn-accept {
+    background: var(--accent-color, #e91e63);
+    color: #fff;
+}
+
+.avatar-invite-card .btn-accept:hover {
+    opacity: 0.88;
+}
+
+.avatar-invite-card .btn-reject {
+    background: var(--primary-bg, #e8e8e8);
+    color: var(--text-secondary, #666);
+}
+
+.avatar-invite-card .btn-reject:hover {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+/* 邀请结果状态 */
+.avatar-invite-card .invite-result {
+    text-align: center;
+    padding: 8px 0 4px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.avatar-invite-card .invite-result.accepted {
+    color: #4caf50;
+}
+
+.avatar-invite-card .invite-result.rejected {
+    color: #f44336;
+}
+
+.avatar-invite-card .invite-result.expired {
+    color: var(--text-secondary, #999);
+}
+
+/* 隐藏按钮（已处理的邀请） */
+.avatar-invite-card .invite-actions.hidden,
+.avatar-invite-card.invite-processed .invite-actions {
+    display: none;
+}
